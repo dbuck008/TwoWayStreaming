@@ -17,11 +17,11 @@ import net.majorkernelpanic.streaming.rtsp.RtspServer;
 import net.majorkernelpanic.streaming.video.VideoQuality;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements SharedPreferences.OnSharedPreferenceChangeListener {
     private final static String TAG = "MainActivity";
 
     private SurfaceView mSurfaceView;
-    private VideoQuality videoQuality = new VideoQuality(320,240,20,500000);
+    private VideoQuality videoQuality = new VideoQuality(320,240,7,2000000);
     private SharedPreferences settings;
 
     @Override
@@ -33,18 +33,19 @@ public class MainActivity extends Activity {
 
         mSurfaceView = (SurfaceView) findViewById(R.id.surface);
         settings = PreferenceManager.getDefaultSharedPreferences(this);
+        settings.registerOnSharedPreferenceChangeListener(this);
 
-        // Sets the port of the RTSP server to 1234
+        // Sets the port of the RTSP server to 8086
         SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
         editor.putString(RtspServer.KEY_PORT, String.valueOf(8086));
         editor.apply();
 
         // Read video quality settings from the preferences
-        videoQuality = new VideoQuality(
-                settings.getInt("video_resX", videoQuality.resX),
-                settings.getInt("video_resY", videoQuality.resY),
-                Integer.parseInt(settings.getString("video_framerate", String.valueOf(videoQuality.framerate))),
-                Integer.parseInt(settings.getString("video_bitrate", String.valueOf(videoQuality.bitrate/1000)))*1000);
+//        videoQuality = new VideoQuality(
+//                settings.getInt("video_resX", videoQuality.resX),
+//                settings.getInt("video_resY", videoQuality.resY),
+//                Integer.parseInt(settings.getString("video_framerate", String.valueOf(videoQuality.framerate))),
+//                Integer.parseInt(settings.getString("video_bitrate", String.valueOf(videoQuality.bitrate/1000)))*1000);
 
 
         // Configures the SessionBuilder
@@ -84,21 +85,19 @@ public class MainActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    private SharedPreferences.OnSharedPreferenceChangeListener mOnSharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-        @Override
-        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-            if (key.equals("video_resX") || key.equals("video_resY")) {
-                videoQuality.resX = sharedPreferences.getInt("video_resX", 0);
-                videoQuality.resY = sharedPreferences.getInt("video_resY", 0);
-            }
-
-            else if (key.equals("video_framerate")) {
-                videoQuality.framerate = Integer.parseInt(sharedPreferences.getString("video_framerate", "0"));
-            }
-
-            else if (key.equals("video_bitrate")) {
-                videoQuality.bitrate = Integer.parseInt(sharedPreferences.getString("video_bitrate", "0"))*1000;
-            }
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (key.equals("video_resX") || key.equals("video_resY")) {
+            videoQuality.resX = sharedPreferences.getInt("video_resX", 0);
+            videoQuality.resY = sharedPreferences.getInt("video_resY", 0);
         }
-    };
+
+        else if (key.equals("video_framerate")) {
+            videoQuality.framerate = Integer.parseInt(sharedPreferences.getString("video_framerate", "0"));
+        }
+
+        else if (key.equals("video_bitrate")) {
+            videoQuality.bitrate = Integer.parseInt(sharedPreferences.getString("video_bitrate", "0"))*1000;
+        }
+    }
 }
